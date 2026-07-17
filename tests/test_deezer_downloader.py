@@ -202,7 +202,7 @@ class TestDeezerMethods(unittest.TestCase):
             get_deezer_favorites(user_id)
 
     def test_get_deezer_favorites_userid_valid(self):
-        user_id = "2517244282" # own of test (works)
+        user_id = "6444163141" # own of test (works)
         songs = get_deezer_favorites(user_id)
         self.assertIsInstance(songs, list)
         for song in songs:
