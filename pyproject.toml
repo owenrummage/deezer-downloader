@@ -10,7 +10,7 @@ homepage = "https://github.com/kmille/deezer-downloader"
 
 
 [tool.poetry.dependencies]
-python = "^3.10.1"
+python = "^3.10"
 requests = {extras = ["socks"], version = "^2.28.2"}
 flask = "^3.0.3"
 python-mpd2 = "^3.0.5"
