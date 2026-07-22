@@ -3,11 +3,9 @@ import os
 from pathlib import Path
 from subprocess import Popen, PIPE
 from functools import wraps
-import requests
 import atexit
 from flask import Flask, render_template, request, jsonify, send_from_directory, abort
 from markupsafe import escape
-from flask_autoindex import AutoIndex
 import warnings
 import giphypop
 
@@ -16,8 +14,6 @@ from deezer_downloader.web.music_backend import sched
 from deezer_downloader.deezer import deezer_search, init_deezer_session
 
 app = Flask(__name__)
-auto_index = AutoIndex(app, config["download_dirs"]["base"], add_url_rules=False)
-auto_index.add_icon_rule('music.png', ext='m3u8')
 
 warnings.filterwarnings("ignore", message="You are using the giphy public api key")
 giphy = giphypop.Giphy()
