@@ -139,7 +139,7 @@ class TestDeezerMethods(unittest.TestCase):
         self.assertEqual(songs[13]["SNG_TITLE"], "Aerials")
         self.assertEqual(songs[14]["SNG_ID"], "15523803")
         self.assertEqual(songs[14]["ART_NAME"], "System of A Down")
-        self.assertEqual(songs[14]["SNG_TITLE"], "Arto")
+        self.assertEqual(songs[14]["SNG_TITLE"], "Der Voghormia")
 
     def test_get_invalid_track_infos_from_website(self):
         with self.assertRaises(Deezer404Exception):
