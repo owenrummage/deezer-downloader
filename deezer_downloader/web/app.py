@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 import os
+from pathlib import Path
 from subprocess import Popen, PIPE
 from functools import wraps
 import requests
 import atexit
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, send_from_directory, abort
 from markupsafe import escape
 from flask_autoindex import AutoIndex
 import warnings
@@ -20,6 +21,7 @@ auto_index.add_icon_rule('music.png', ext='m3u8')
 
 warnings.filterwarnings("ignore", message="You are using the giphy public api key")
 giphy = giphypop.Giphy()
+BASE_DIR = Path(config["download_dirs"]["base"]).resolve()
 
 
 def init():
@@ -108,16 +110,39 @@ def show_debug():
 @app.route("/downloads/")
 @app.route("/downloads/<path:path>")
 def autoindex(path="."):
-    # directory index - flask version (let the user download mp3/zip in the browser)
-    try:
-        gif = giphy.random_gif(tag="cat")
-        media_url = gif.media_url
-    except requests.exceptions.HTTPError:
-        # the api is rate-limited. Fallback:
-        media_url = "https://cataas.com/cat"
+    requested = (BASE_DIR / path).resolve()
 
-    template_context = {'gif_url': media_url}
-    return auto_index.render_autoindex(path, template_context=template_context)
+    if BASE_DIR not in requested.parents and requested != BASE_DIR:
+        abort(403)
+    if not requested.exists():
+        abort(404)
+
+    if requested.is_file():
+        as_attachment = request.args.get("as_attachment", "true").lower() == "true"
+        return send_from_directory(requested.parent, requested.name, as_attachment=as_attachment)
+
+    rel_path = requested.relative_to(BASE_DIR)
+    entries = []
+
+    # check if BASE_DIR - requested path = same path
+    if rel_path != Path("."):
+        parent = "" if rel_path.parent == Path(".") else str(rel_path.parent)
+        entries.append({"name": "..", "path": parent, "is_dir": True})
+
+    for entry in sorted(requested.iterdir(), key=lambda p: (not p.is_dir(), p.name.lower())):
+        entry_rel = entry.name if rel_path == Path(".") else str(rel_path / entry.name)
+        entries.append({
+            "name": entry.name,
+            "path": entry_rel,
+            "is_dir": entry.is_dir(),
+            "size": f"{round(entry.stat().st_size / (1000 ** 2), 2)} MB"
+        })
+
+    return render_template(
+        "autoindex.html",
+        entries=entries,
+        current_path="" if rel_path == Path(".") else str(rel_path),
+    )
 
 
 @app.route('/queue', methods=['GET'])
